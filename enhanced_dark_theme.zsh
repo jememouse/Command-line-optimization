@@ -17,11 +17,12 @@ autoload -U colors && colors
 setopt PROMPT_SUBST
 
 # =============================================================================
-# 深灰色背景专用颜色方案 - 针对舒适的深色背景精心调优
+# 深灰色背景专用颜色方案 - 完全避免黑色文字，使用深灰色替代
 # 推荐背景：#1e1e1e、#2d2d2d、#282828 等深灰色调
+# 优化原则：绝不使用纯黑色文字，确保在深色背景下的可读性
 # =============================================================================
 
-# 主要元素颜色 - 使用适中对比度的明亮颜色，避免过于刺眼
+# 主要元素颜色 - 使用高对比度明亮颜色，确保清晰可见
 local USER_COLOR="%{$fg_bold[cyan]%}"         # 用户名 - 亮青色（在深灰背景下醒目且舒适）
 local HOST_COLOR="%{$fg_bold[blue]%}"         # 主机名 - 亮蓝色（稳定感，在深灰背景下清晰）
 local PATH_COLOR="%{$fg_bold[yellow]%}"       # 路径 - 亮黄色（在深灰背景下对比度佳）
@@ -29,12 +30,18 @@ local GIT_COLOR="%{$fg_bold[green]%}"         # Git分支 - 亮绿色（活跃�
 local PROJECT_COLOR="%{$fg_bold[magenta]%}"   # 项目名 - 亮紫色（优雅且在深灰背景下突出）
 local PYTHON_COLOR="%{$fg_bold[red]%}"        # Python版本 - 亮红色（重要信息，适中醒目）
 
-# 辅助元素颜色 - 在深灰背景下保持清晰且舒适
-local TIME_COLOR="%{$fg_bold[white]%}"        # 时间 - 亮白色（在深灰背景下清晰可见）
+# 辅助元素颜色 - 避免黑色，使用明亮色彩
+local TIME_COLOR="%{$fg_bold[white]%}"        # 时间 - 亮白色（在深灰背景下最清晰）
 local FRAME_COLOR="%{$fg[cyan]%}"             # 框架线条 - 普通青色（柔和边框，不刺眼）
 local PROMPT_COLOR="%{$fg_bold[green]%}"      # 命令提示符 - 亮绿色（就绪状态）
 local SEPARATOR="%{$fg_bold[white]%}"         # 分隔符 - 亮白色（在深灰背景下清晰分隔）
 local LABEL_COLOR="%{$fg[white]%}"            # 标签文字 - 白色（在深灰背景下清晰舒适）
+
+# 深灰色替代方案 - 完全避免黑色，提供多种深色选择
+local DARK_GRAY_COLOR="%{$fg[blue]%}"         # 深灰色替代 - 使用深蓝色模拟深灰效果
+local LIGHT_GRAY_COLOR="%{$fg[white]%}"       # 浅灰色替代 - 使用白色确保可读性
+local SUBTLE_COLOR="%{$fg[cyan]%}"            # 低调颜色 - 使用青色替代深灰
+local MUTED_COLOR="%{$fg[magenta]%}"          # 柔和颜色 - 使用紫色提供变化
 
 # 状态指示颜色
 local SUCCESS_COLOR="%{$fg_bold[green]%}"     # 成功状态 - 亮绿色
@@ -77,6 +84,28 @@ function _is_cache_valid() {
     local cache_time=$1
     local current_time=$(_get_timestamp)
     [[ $((current_time - cache_time)) -lt $_CACHE_TIMEOUT ]]
+}
+
+# =============================================================================
+# 颜色验证和优化函数
+# =============================================================================
+
+# 颜色验证函数 - 确保没有使用黑色
+validate_colors() {
+    local validation_passed=true
+
+    # 检查是否有黑色的使用
+    if [[ "$USER_COLOR" == *"black"* ]] || [[ "$HOST_COLOR" == *"black"* ]] ||
+       [[ "$PATH_COLOR" == *"black"* ]] || [[ "$GIT_COLOR" == *"black"* ]] ||
+       [[ "$PROJECT_COLOR" == *"black"* ]] || [[ "$PYTHON_COLOR" == *"black"* ]] ||
+       [[ "$TIME_COLOR" == *"black"* ]] || [[ "$LABEL_COLOR" == *"black"* ]]; then
+        echo "${ERROR_COLOR}⚠️ 警告: 检测到黑色文字的使用，这在深灰背景下可读性差${RESET}"
+        validation_passed=false
+    fi
+
+    if [[ "$validation_passed" == true ]]; then
+        echo "${SUCCESS_COLOR}✅ 颜色验证通过：所有文字颜色都适合深灰背景${RESET}"
+    fi
 }
 
 # =============================================================================
@@ -246,8 +275,13 @@ setopt EXTENDED_GLOB
 setopt NO_BEEP
 
 # =============================================================================
-# 加载完成提示
+# 加载完成提示和验证
 # =============================================================================
+
+# 执行颜色验证
+validate_colors
+
 echo "${SUCCESS_COLOR}${ICON_SUCCESS}${RESET} ${INFO_COLOR}增强版深灰背景主题终端配置已加载${RESET}"
-echo "${INFO_COLOR}${ICON_SUCCESS}${RESET} ${LABEL_COLOR}专为深灰色背景优化的舒适颜色方案${RESET}"
+echo "${INFO_COLOR}${ICON_SUCCESS}${RESET} ${LABEL_COLOR}专为深灰色背景优化，完全避免黑色文字${RESET}"
 echo "${INFO_COLOR}${ICON_SUCCESS}${RESET} ${LABEL_COLOR}推荐背景: #1e1e1e、#2d2d2d、#282828${RESET}"
+echo "${INFO_COLOR}${ICON_SUCCESS}${RESET} ${LABEL_COLOR}所有文字颜色都经过深灰背景优化${RESET}"
