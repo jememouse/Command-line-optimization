@@ -265,6 +265,15 @@ alias hm='history | grep -i'                # 不区分大小写的历史搜索
 alias hl='history | tail -20'               # 显示最后20条历史
 alias hf='history | head -20'               # 显示最前20条历史
 
+# macOS特有别名
+alias finder='open -a Finder'               # 在Finder中打开当前目录
+alias preview='open -a Preview'             # 用Preview打开文件
+alias code='open -a "Visual Studio Code"'   # 用VS Code打开文件/目录
+alias subl='open -a "Sublime Text"'         # 用Sublime Text打开
+alias chrome='open -a "Google Chrome"'      # 用Chrome打开URL
+alias safari='open -a Safari'               # 用Safari打开URL
+alias trash='mv'                            # 移动到废纸篓的别名前缀
+
 # =============================================================================
 # 增强的命令记忆功能配置
 # =============================================================================
@@ -322,16 +331,49 @@ zstyle ':completion:*' menu select
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*' verbose yes
 
+# macOS特有路径补全优化
+zstyle ':completion:*' special-dirs true                    # 补全 . 和 ..
+zstyle ':completion:*:cd:*' ignore-parents parent pwd       # cd 时忽略当前目录
+zstyle ':completion:*' squeeze-slashes true                 # 压缩多个斜杠
+
+# macOS应用程序补全
+zstyle ':completion:*:*:open:*' file-patterns '*:all-files'
+zstyle ':completion:*:*:open:*:all-files' ignored-patterns '*.app'
+
+# Homebrew路径补全 (如果安装了Homebrew)
+if command -v brew >/dev/null 2>&1; then
+    # 添加Homebrew补全路径
+    if [[ -d "/opt/homebrew/share/zsh/site-functions" ]]; then
+        fpath=("/opt/homebrew/share/zsh/site-functions" $fpath)
+    elif [[ -d "/usr/local/share/zsh/site-functions" ]]; then
+        fpath=("/usr/local/share/zsh/site-functions" $fpath)
+    fi
+fi
+
 # 历史搜索增强 - 实现类似zsh-autosuggestions的功能
 autoload -U history-search-end
 zle -N history-beginning-search-backward-end history-search-end
 zle -N history-beginning-search-forward-end history-search-end
 
-# 绑定更多历史搜索快捷键
+# 绑定更多历史搜索快捷键 - macOS优化
 bindkey "^[[1;5A" history-beginning-search-backward-end    # Ctrl+上箭头
 bindkey "^[[1;5B" history-beginning-search-forward-end     # Ctrl+下箭头
+bindkey "^[[1;2A" history-beginning-search-backward-end    # Shift+上箭头 (macOS)
+bindkey "^[[1;2B" history-beginning-search-forward-end     # Shift+下箭头 (macOS)
+bindkey "^[[A" up-line-or-beginning-search                 # 上箭头 (备用绑定)
+bindkey "^[[B" down-line-or-beginning-search               # 下箭头 (备用绑定)
 bindkey "^R" history-incremental-search-backward           # Ctrl+R 反向搜索
 bindkey "^S" history-incremental-search-forward            # Ctrl+S 正向搜索
+
+# macOS Terminal.app 和 iTerm2 特殊键绑定
+if [[ "$TERM_PROGRAM" == "Apple_Terminal" ]] || [[ "$TERM_PROGRAM" == "iTerm.app" ]]; then
+    # Option+上下箭头 (macOS特有)
+    bindkey "^[^[[A" history-beginning-search-backward-end  # Option+上箭头
+    bindkey "^[^[[B" history-beginning-search-forward-end   # Option+下箭头
+    # Command+上下箭头 (如果终端支持)
+    bindkey "^[[1;9A" history-beginning-search-backward-end # Cmd+上箭头
+    bindkey "^[[1;9B" history-beginning-search-forward-end  # Cmd+下箭头
+fi
 
 # =============================================================================
 # 自动建议功能 - 简化版zsh-autosuggestions
@@ -379,6 +421,66 @@ bindkey "^C" _zsh_autosuggest_clear                         # Ctrl+C 清除建�
 
 # Tab键增强 - 智能补全
 bindkey "^I" expand-or-complete-prefix                      # Tab键智能补全
+
+# =============================================================================
+# macOS特有功能函数
+# =============================================================================
+
+# 快速打开Finder到当前目录
+function f() {
+    if [[ $# -eq 0 ]]; then
+        open .
+    else
+        open "$@"
+    fi
+}
+
+# 快速用VS Code打开
+function c() {
+    if [[ $# -eq 0 ]]; then
+        code .
+    else
+        code "$@"
+    fi
+}
+
+# 快速预览文件
+function p() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: p <file>"
+    else
+        qlmanage -p "$@" >/dev/null 2>&1
+    fi
+}
+
+# 获取文件/目录的完整路径
+function realpath() {
+    if [[ $# -eq 0 ]]; then
+        pwd
+    else
+        for file in "$@"; do
+            if [[ -e "$file" ]]; then
+                echo "$(cd "$(dirname "$file")" && pwd)/$(basename "$file")"
+            else
+                echo "realpath: $file: No such file or directory" >&2
+                return 1
+            fi
+        done
+    fi
+}
+
+# 复制当前路径到剪贴板
+function pwd2clip() {
+    pwd | pbcopy
+    echo "Current path copied to clipboard: $(pwd)"
+}
+
+# 从剪贴板粘贴并执行
+function paste-exec() {
+    local cmd=$(pbpaste)
+    echo "Executing: $cmd"
+    eval "$cmd"
+}
 
 # =============================================================================
 # 高级历史记录功能函数
@@ -473,6 +575,14 @@ echo
 echo "${INFO_COLOR}🔮 自动补全功能:${RESET}"
 echo "  ${SUCCESS_COLOR}↑/↓ 箭头键${RESET} - 基于输入前缀搜索历史"
 echo "  ${SUCCESS_COLOR}Ctrl+↑/↓${RESET} - 精确历史匹配搜索"
+echo "  ${SUCCESS_COLOR}Option+↑/↓${RESET} - macOS增强历史搜索"
 echo "  ${SUCCESS_COLOR}Ctrl+R${RESET} - 交互式反向搜索"
 echo "  ${SUCCESS_COLOR}Ctrl+F 或 →${RESET} - 接受自动建议"
 echo "  ${SUCCESS_COLOR}Tab${RESET} - 智能命令和路径补全"
+echo
+echo "${INFO_COLOR}🍎 macOS增强功能:${RESET}"
+echo "  ${SUCCESS_COLOR}f [path]${RESET} - 在Finder中打开目录"
+echo "  ${SUCCESS_COLOR}c [file]${RESET} - 用VS Code打开文件"
+echo "  ${SUCCESS_COLOR}p <file>${RESET} - 快速预览文件"
+echo "  ${SUCCESS_COLOR}pwd2clip${RESET} - 复制当前路径到剪贴板"
+echo "  ${SUCCESS_COLOR}finder, preview, code${RESET} - 快速打开应用"
