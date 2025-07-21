@@ -237,10 +237,14 @@ RPROMPT=''
 # =============================================================================
 # 实用别名和快捷命令
 # =============================================================================
+
+# 文件操作别名
 alias ll='ls -alF --color=auto'
 alias la='ls -A --color=auto'
 alias l='ls -CF --color=auto'
 alias py='python3'
+
+# Git相关别名
 alias gs='git status'
 alias ga='git add'
 alias gc='git commit'
@@ -248,17 +252,104 @@ alias gp='git push'
 alias gl='git log --oneline -10'
 alias gd='git diff'
 
+# 历史记录相关别名
+alias h='history'                           # 显示历史记录
+alias hg='history | grep'                   # 在历史中搜索
+alias h10='history -10'                     # 显示最近10条命令
+alias h20='history -20'                     # 显示最近20条命令
+alias hc='history -c'                       # 清除历史记录
+alias hr='history -r'                       # 重新读取历史文件
+
 # =============================================================================
-# 历史记录配置
+# 增强的命令记忆功能配置
 # =============================================================================
+
+# 历史记录文件和大小设置
 HISTFILE=~/.zsh_history
-HISTSIZE=5000
-SAVEHIST=5000
-setopt HIST_IGNORE_DUPS
-setopt HIST_IGNORE_ALL_DUPS
-setopt HIST_IGNORE_SPACE
-setopt SHARE_HISTORY
-setopt EXTENDED_HISTORY
+HISTSIZE=10000                    # 内存中保存的历史命令数量
+SAVEHIST=10000                    # 文件中保存的历史命令数量
+
+# 基础历史记录选项
+setopt HIST_IGNORE_DUPS           # 忽略连续重复的命令
+setopt HIST_IGNORE_ALL_DUPS       # 删除历史中的所有重复命令
+setopt HIST_IGNORE_SPACE          # 忽略以空格开头的命令
+setopt HIST_SAVE_NO_DUPS          # 保存时不保存重复命令
+setopt HIST_FIND_NO_DUPS          # 查找时跳过重复命令
+setopt SHARE_HISTORY              # 多个终端间共享历史记录
+setopt EXTENDED_HISTORY           # 保存命令执行时间戳
+setopt INC_APPEND_HISTORY         # 立即追加历史记录，而不是退出时
+setopt HIST_EXPIRE_DUPS_FIRST     # 历史记录满时优先删除重复项
+setopt HIST_VERIFY                # 历史扩展时先显示命令再执行
+setopt HIST_REDUCE_BLANKS         # 删除命令中多余的空格
+
+# 历史记录搜索增强
+autoload -U up-line-or-beginning-search
+autoload -U down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+
+# 绑定键位进行智能历史搜索
+bindkey "^[[A" up-line-or-beginning-search      # 上箭头键
+bindkey "^[[B" down-line-or-beginning-search    # 下箭头键
+bindkey "^P" up-line-or-beginning-search        # Ctrl+P
+bindkey "^N" down-line-or-beginning-search      # Ctrl+N
+
+# =============================================================================
+# 高级历史记录功能函数
+# =============================================================================
+
+# 智能历史搜索函数
+function hsearch() {
+    if [[ $# -eq 0 ]]; then
+        echo "${WARNING_COLOR}用法: hsearch <搜索词>${RESET}"
+        echo "${INFO_COLOR}示例: hsearch git${RESET}"
+        return 1
+    fi
+
+    echo "${INFO_COLOR}🔍 搜索历史命令: '$1'${RESET}"
+    echo "${FRAME_COLOR}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+
+    # 使用颜色高亮搜索结果
+    history | grep -i --color=always "$1" | tail -20
+}
+
+# 显示最常用的命令
+function htop() {
+    local num=${1:-10}
+    echo "${INFO_COLOR}📊 最常用的 $num 个命令:${RESET}"
+    echo "${FRAME_COLOR}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+
+    history | awk '{print $2}' | sort | uniq -c | sort -nr | head -$num | \
+    while read count command; do
+        printf "${SUCCESS_COLOR}%3d${RESET} ${PATH_COLOR}%s${RESET}\n" "$count" "$command"
+    done
+}
+
+# 按日期显示历史记录
+function hdate() {
+    local date_pattern=${1:-$(date +%Y-%m-%d)}
+    echo "${INFO_COLOR}📅 $date_pattern 的命令历史:${RESET}"
+    echo "${FRAME_COLOR}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+
+    # 显示指定日期的命令
+    history -E | grep "$date_pattern" | head -20
+}
+
+# 历史记录统计
+function hstats() {
+    echo "${INFO_COLOR}📈 历史记录统计信息:${RESET}"
+    echo "${FRAME_COLOR}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+
+    local total=$(history | wc -l | tr -d ' ')
+    local today=$(history -E | grep "$(date +%Y-%m-%d)" | wc -l | tr -d ' ')
+    local unique=$(history | awk '{print $2}' | sort | uniq | wc -l | tr -d ' ')
+
+    printf "${LABEL_COLOR}总命令数:${RESET} ${SUCCESS_COLOR}%s${RESET}\n" "$total"
+    printf "${LABEL_COLOR}今日命令:${RESET} ${SUCCESS_COLOR}%s${RESET}\n" "$today"
+    printf "${LABEL_COLOR}唯一命令:${RESET} ${SUCCESS_COLOR}%s${RESET}\n" "$unique"
+    printf "${LABEL_COLOR}历史文件:${RESET} ${PATH_COLOR}%s${RESET}\n" "$HISTFILE"
+    printf "${LABEL_COLOR}文件大小:${RESET} ${INFO_COLOR}%s${RESET}\n" "$(du -h $HISTFILE 2>/dev/null | cut -f1 || echo '未知')"
+}
 
 # =============================================================================
 # 自动补全配置
@@ -284,4 +375,11 @@ validate_colors
 echo "${SUCCESS_COLOR}${ICON_SUCCESS}${RESET} ${INFO_COLOR}增强版深灰背景主题终端配置已加载${RESET}"
 echo "${INFO_COLOR}${ICON_SUCCESS}${RESET} ${LABEL_COLOR}专为深灰色背景优化，完全避免黑色文字${RESET}"
 echo "${INFO_COLOR}${ICON_SUCCESS}${RESET} ${LABEL_COLOR}推荐背景: #1e1e1e、#2d2d2d、#282828${RESET}"
-echo "${INFO_COLOR}${ICON_SUCCESS}${RESET} ${LABEL_COLOR}所有文字颜色都经过深灰背景优化${RESET}"
+echo "${INFO_COLOR}${ICON_SUCCESS}${RESET} ${LABEL_COLOR}增强的命令记忆功能已启用 (10000条历史记录)${RESET}"
+echo
+echo "${INFO_COLOR}💡 命令记忆功能:${RESET}"
+echo "  ${SUCCESS_COLOR}hsearch <关键词>${RESET} - 智能搜索历史命令"
+echo "  ${SUCCESS_COLOR}htop [数量]${RESET} - 显示最常用命令"
+echo "  ${SUCCESS_COLOR}hdate [日期]${RESET} - 按日期查看历史"
+echo "  ${SUCCESS_COLOR}hstats${RESET} - 历史记录统计信息"
+echo "  ${SUCCESS_COLOR}h, hg, h10, h20${RESET} - 历史记录快捷命令"
