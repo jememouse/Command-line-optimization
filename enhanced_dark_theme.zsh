@@ -260,6 +260,11 @@ alias h20='history -20'                     # 显示最近20条命令
 alias hc='history -c'                       # 清除历史记录
 alias hr='history -r'                       # 重新读取历史文件
 
+# 自动补全和历史匹配别名
+alias hm='history | grep -i'                # 不区分大小写的历史搜索
+alias hl='history | tail -20'               # 显示最后20条历史
+alias hf='history | head -20'               # 显示最前20条历史
+
 # =============================================================================
 # 增强的命令记忆功能配置
 # =============================================================================
@@ -293,6 +298,87 @@ bindkey "^[[A" up-line-or-beginning-search      # 上箭头键
 bindkey "^[[B" down-line-or-beginning-search    # 下箭头键
 bindkey "^P" up-line-or-beginning-search        # Ctrl+P
 bindkey "^N" down-line-or-beginning-search      # Ctrl+N
+
+# =============================================================================
+# 自动补全和历史匹配增强功能
+# =============================================================================
+
+# 启用高级自动补全系统
+autoload -Uz compinit
+compinit -i
+
+# 自动补全选项
+setopt AUTO_LIST                    # 自动列出补全选项
+setopt AUTO_MENU                    # 使用菜单补全
+setopt COMPLETE_IN_WORD             # 在单词中间也能补全
+setopt ALWAYS_TO_END                # 补全后光标移到末尾
+setopt LIST_PACKED                  # 紧凑显示补全列表
+setopt LIST_TYPES                   # 显示文件类型标识
+
+# 补全匹配控制
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' menu select
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' verbose yes
+
+# 历史搜索增强 - 实现类似zsh-autosuggestions的功能
+autoload -U history-search-end
+zle -N history-beginning-search-backward-end history-search-end
+zle -N history-beginning-search-forward-end history-search-end
+
+# 绑定更多历史搜索快捷键
+bindkey "^[[1;5A" history-beginning-search-backward-end    # Ctrl+上箭头
+bindkey "^[[1;5B" history-beginning-search-forward-end     # Ctrl+下箭头
+bindkey "^R" history-incremental-search-backward           # Ctrl+R 反向搜索
+bindkey "^S" history-incremental-search-forward            # Ctrl+S 正向搜索
+
+# =============================================================================
+# 自动建议功能 - 简化版zsh-autosuggestions
+# =============================================================================
+
+# 自动建议颜色配置（适配深灰背景）
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=blue,underline"        # 蓝色下划线，在深灰背景下清晰可见
+
+# 自动建议函数
+function _zsh_autosuggest_suggest() {
+    local suggestion
+    # 从历史记录中查找匹配的命令
+    suggestion=$(fc -ln -1000 | grep "^${BUFFER}" | head -1 | sed "s/^${BUFFER}//")
+    if [[ -n "$suggestion" ]]; then
+        # 显示建议（简化版实现）
+        POSTDISPLAY="$suggestion"
+    else
+        POSTDISPLAY=""
+    fi
+}
+
+# 接受建议的函数
+function _zsh_autosuggest_accept() {
+    if [[ -n "$POSTDISPLAY" ]]; then
+        BUFFER="$BUFFER$POSTDISPLAY"
+        POSTDISPLAY=""
+        zle end-of-line
+    fi
+}
+
+# 清除建议的函数
+function _zsh_autosuggest_clear() {
+    POSTDISPLAY=""
+}
+
+# 注册ZLE函数
+zle -N _zsh_autosuggest_accept
+zle -N _zsh_autosuggest_clear
+
+# 绑定快捷键
+bindkey "^F" _zsh_autosuggest_accept                        # Ctrl+F 接受建议
+bindkey "^[[C" _zsh_autosuggest_accept                      # 右箭头键接受建议
+bindkey "^G" _zsh_autosuggest_clear                         # Ctrl+G 清除建议
+bindkey "^C" _zsh_autosuggest_clear                         # Ctrl+C 清除建议
+
+# Tab键增强 - 智能补全
+bindkey "^I" expand-or-complete-prefix                      # Tab键智能补全
 
 # =============================================================================
 # 高级历史记录功能函数
@@ -383,3 +469,10 @@ echo "  ${SUCCESS_COLOR}htop [数量]${RESET} - 显示最常用命令"
 echo "  ${SUCCESS_COLOR}hdate [日期]${RESET} - 按日期查看历史"
 echo "  ${SUCCESS_COLOR}hstats${RESET} - 历史记录统计信息"
 echo "  ${SUCCESS_COLOR}h, hg, h10, h20${RESET} - 历史记录快捷命令"
+echo
+echo "${INFO_COLOR}🔮 自动补全功能:${RESET}"
+echo "  ${SUCCESS_COLOR}↑/↓ 箭头键${RESET} - 基于输入前缀搜索历史"
+echo "  ${SUCCESS_COLOR}Ctrl+↑/↓${RESET} - 精确历史匹配搜索"
+echo "  ${SUCCESS_COLOR}Ctrl+R${RESET} - 交互式反向搜索"
+echo "  ${SUCCESS_COLOR}Ctrl+F 或 →${RESET} - 接受自动建议"
+echo "  ${SUCCESS_COLOR}Tab${RESET} - 智能命令和路径补全"
