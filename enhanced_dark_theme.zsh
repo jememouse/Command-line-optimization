@@ -312,43 +312,133 @@ bindkey "^N" down-line-or-beginning-search      # Ctrl+N
 # 自动补全和历史匹配增强功能
 # =============================================================================
 
-# 启用高级自动补全系统
-autoload -Uz compinit
-compinit -i
+# =============================================================================
+# zsh专用高级自动补全系统
+# =============================================================================
 
-# 自动补全选项
-setopt AUTO_LIST                    # 自动列出补全选项
-setopt AUTO_MENU                    # 使用菜单补全
-setopt COMPLETE_IN_WORD             # 在单词中间也能补全
-setopt ALWAYS_TO_END                # 补全后光标移到末尾
-setopt LIST_PACKED                  # 紧凑显示补全列表
-setopt LIST_TYPES                   # 显示文件类型标识
+# 只在zsh环境下启用高级补全功能
+if [[ -n "$ZSH_VERSION" ]]; then
+    # 启用高级自动补全系统
+    autoload -Uz compinit
 
-# 补全匹配控制
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
-zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-zstyle ':completion:*' menu select
-zstyle ':completion:*' group-name ''
-zstyle ':completion:*' verbose yes
-
-# macOS特有路径补全优化
-zstyle ':completion:*' special-dirs true                    # 补全 . 和 ..
-zstyle ':completion:*:cd:*' ignore-parents parent pwd       # cd 时忽略当前目录
-zstyle ':completion:*' squeeze-slashes true                 # 压缩多个斜杠
-
-# macOS应用程序补全
-zstyle ':completion:*:*:open:*' file-patterns '*:all-files'
-zstyle ':completion:*:*:open:*:all-files' ignored-patterns '*.app'
-
-# Homebrew路径补全 (如果安装了Homebrew)
-if command -v brew >/dev/null 2>&1; then
-    # 添加Homebrew补全路径
-    if [[ -d "/opt/homebrew/share/zsh/site-functions" ]]; then
-        fpath=("/opt/homebrew/share/zsh/site-functions" $fpath)
-    elif [[ -d "/usr/local/share/zsh/site-functions" ]]; then
-        fpath=("/usr/local/share/zsh/site-functions" $fpath)
+    # 快速初始化（跳过安全检查以提高启动速度）
+    if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh+24) ]]; then
+        compinit -d "${ZDOTDIR:-$HOME}/.zcompdump"
+    else
+        compinit -C -d "${ZDOTDIR:-$HOME}/.zcompdump"
     fi
-fi
+
+    # zsh自动补全选项
+    setopt AUTO_LIST                    # 自动列出补全选项
+    setopt AUTO_MENU                    # 使用菜单补全
+    setopt COMPLETE_IN_WORD             # 在单词中间也能补全
+    setopt ALWAYS_TO_END                # 补全后光标移到末尾
+    setopt LIST_PACKED                  # 紧凑显示补全列表
+    setopt LIST_TYPES                   # 显示文件类型标识
+    setopt MENU_COMPLETE               # 第一次Tab直接选择第一个选项
+    setopt AUTO_PARAM_SLASH            # 目录名后自动添加斜杠
+    setopt AUTO_PARAM_KEYS             # 智能参数补全
+    setopt FLOW_CONTROL                # 启用流控制
+
+    # zsh补全匹配控制 - 智能匹配
+    zstyle ':completion:*' matcher-list \
+        'm:{a-zA-Z}={A-Za-z}' \
+        'r:|[._-]=* r:|=*' \
+        'l:|=* r:|=*' \
+        'm:{a-zA-Z-_}={A-Za-z_-}' \
+        'r:|?=** m:{a-z\-}={A-Z\_}'
+
+    # 补全菜单和显示优化
+    zstyle ':completion:*' menu select=2
+    zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+    zstyle ':completion:*' group-name ''
+    zstyle ':completion:*' verbose yes
+    zstyle ':completion:*' format '%B%F{blue}-- %d --%f%b'
+    zstyle ':completion:*:descriptions' format '%B%F{green}-- %d --%f%b'
+    zstyle ':completion:*:messages' format '%B%F{purple}-- %d --%f%b'
+    zstyle ':completion:*:warnings' format '%B%F{red}-- No matches found --%f%b'
+    zstyle ':completion:*:corrections' format '%B%F{yellow}-- %d (errors: %e) --%f%b'
+
+    # zsh高级补全行为配置
+    zstyle ':completion:*' use-cache on
+    zstyle ':completion:*' cache-path "${ZDOTDIR:-$HOME}/.zcompcache"
+    zstyle ':completion:*' rehash true                      # 自动rehash新命令
+    zstyle ':completion:*' accept-exact '*(N)'             # 精确匹配优先
+    zstyle ':completion:*' squeeze-slashes true            # 压缩多个斜杠
+    zstyle ':completion:*' list-suffixes true              # 显示文件后缀
+    zstyle ':completion:*' expand prefix suffix            # 智能展开
+
+    # 补全排序和优先级
+    zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm -w -w"
+    zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
+    zstyle ':completion:*:*:kill:*' menu yes select
+    zstyle ':completion:*:kill:*' force-list always
+    zstyle ':completion:*:*:killall:*' menu yes select
+    zstyle ':completion:*:killall:*' force-list always
+
+    # 目录补全优化
+    zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-directories
+    zstyle ':completion:*:cd:*' ignore-parents parent pwd
+    zstyle ':completion:*' special-dirs true               # 补全 . 和 ..
+
+    # 文件补全优化
+    zstyle ':completion:*' file-sort modification         # 按修改时间排序
+    zstyle ':completion:*' list-dirs-first true           # 目录优先显示
+
+    # macOS应用程序补全
+    if [[ "$OSTYPE" == darwin* ]]; then
+        zstyle ':completion:*:*:open:*' file-patterns '*:all-files'
+        zstyle ':completion:*:*:open:*:all-files' ignored-patterns '*.app'
+    fi
+
+    # Git补全优化
+    zstyle ':completion:*:*:git:*' script ~/.zsh/git-completion.bash
+    zstyle ':completion:*:*:git*:*' group-order 'main commands' 'alias commands' 'external commands'
+
+    # SSH/SCP补全优化
+    zstyle ':completion:*:(ssh|scp|rsync):*' tag-order 'hosts:-host:host hosts:-domain:domain hosts:-ipaddr:ip\ address *'
+    zstyle ':completion:*:(scp|rsync):*' group-order users files all-files hosts-domain hosts-host hosts-ipaddr
+    zstyle ':completion:*:ssh:*' group-order users hosts-domain hosts-host users hosts-ipaddr
+    zstyle ':completion:*:(ssh|scp|rsync):*:hosts-host' ignored-patterns '*(.|:)*' loopback ip6-loopback localhost ip6-localhost broadcasthost
+    zstyle ':completion:*:(ssh|scp|rsync):*:hosts-domain' ignored-patterns '<->.<->.<->.<->' '^[-[:alnum:]]##(.[-[:alnum:]]##)##' '*@*'
+    zstyle ':completion:*:(ssh|scp|rsync):*:hosts-ipaddr' ignored-patterns '^(<->.<->.<->.<->|(|::)([[:xdigit:].]##:(#c,2))##(|%*))' '127.0.0.<->' '255.255.255.255' '::1' 'fe80::*'
+
+    # 命令补全优化
+    zstyle ':completion:*:*:*:*:*' menu select
+    zstyle ':completion:*:matches' group 'yes'
+    zstyle ':completion:*:options' description 'yes'
+    zstyle ':completion:*:options' auto-description '%d'
+    zstyle ':completion:*:default' list-prompt '%S%M matches%s'
+    zstyle ':completion:*' select-prompt '%SScrolling active: current selection at %p%s'
+
+    # 智能大小写匹配
+    zstyle ':completion:*' matcher-list '' 'm:{a-z}={A-Z}' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=* l:|=*'
+
+    # Homebrew路径补全 (如果安装了Homebrew)
+    if command -v brew >/dev/null 2>&1; then
+        # 添加Homebrew补全路径
+        if [[ -d "/opt/homebrew/share/zsh/site-functions" ]]; then
+            fpath=("/opt/homebrew/share/zsh/site-functions" $fpath)
+        elif [[ -d "/usr/local/share/zsh/site-functions" ]]; then
+            fpath=("/usr/local/share/zsh/site-functions" $fpath)
+        fi
+
+        # Homebrew命令补全优化
+        zstyle ':completion:*:*:brew:*' tag-order 'commands formulae'
+    fi
+
+    # Python/pip补全优化
+    if command -v pip >/dev/null 2>&1; then
+        zstyle ':completion:*:*:pip:*' group-order 'commands' 'packages'
+    fi
+
+    # Docker补全优化
+    if command -v docker >/dev/null 2>&1; then
+        zstyle ':completion:*:*:docker:*' option-stacking yes
+        zstyle ':completion:*:*:docker-*:*' option-stacking yes
+    fi
+
+fi  # 结束zsh检查
 
 # 历史搜索增强 - 实现类似zsh-autosuggestions的功能
 autoload -U history-search-end
@@ -376,51 +466,120 @@ if [[ "$TERM_PROGRAM" == "Apple_Terminal" ]] || [[ "$TERM_PROGRAM" == "iTerm.app
 fi
 
 # =============================================================================
-# 自动建议功能 - 简化版zsh-autosuggestions
+# zsh专用自动建议功能 - 增强版autosuggestions
 # =============================================================================
 
-# 自动建议颜色配置（适配深灰背景）
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=blue,underline"        # 蓝色下划线，在深灰背景下清晰可见
+# 只在zsh环境下启用自动建议功能
+if [[ -n "$ZSH_VERSION" ]]; then
+    # 自动建议颜色配置（适配深灰背景）
+    ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=blue,underline"        # 蓝色下划线，在深灰背景下清晰可见
+    ZSH_AUTOSUGGEST_STRATEGY=(history completion)              # 建议策略：历史记录和补全
 
-# 自动建议函数
-function _zsh_autosuggest_suggest() {
-    local suggestion
-    # 从历史记录中查找匹配的命令
-    suggestion=$(fc -ln -1000 | grep "^${BUFFER}" | head -1 | sed "s/^${BUFFER}//")
-    if [[ -n "$suggestion" ]]; then
-        # 显示建议（简化版实现）
-        POSTDISPLAY="$suggestion"
-    else
+    # 增强的自动建议函数
+    function _zsh_autosuggest_suggest() {
+        local suggestion
+        local current_buffer="$BUFFER"
+
+        # 如果输入为空，不显示建议
+        [[ -z "$current_buffer" ]] && { POSTDISPLAY=""; return }
+
+        # 策略1: 从历史记录中查找精确匹配
+        suggestion=$(fc -ln -2000 | awk -v pattern="^${current_buffer//\\/\\\\}" '$0 ~ pattern && $0 != pattern { print substr($0, length(pattern)+1); exit }')
+
+        # 策略2: 如果没有精确匹配，尝试模糊匹配
+        if [[ -z "$suggestion" ]]; then
+            suggestion=$(fc -ln -1000 | awk -v pattern="${current_buffer//\\/\\\\}" '$0 ~ pattern && length($0) > length(pattern) { print substr($0, length(pattern)+1); exit }')
+        fi
+
+        # 策略3: 基于常用命令的智能建议
+        if [[ -z "$suggestion" ]] && [[ ${#current_buffer} -ge 2 ]]; then
+            case "$current_buffer" in
+                "git "*)
+                    suggestion="status"
+                    ;;
+                "cd "*)
+                    # 建议最近访问的目录
+                    suggestion=$(dirs -p | head -5 | tail -4 | head -1 | sed "s|^${current_buffer#cd }||")
+                    ;;
+                "ls"*)
+                    suggestion=" -la"
+                    ;;
+                "python"*)
+                    suggestion=" -i"
+                    ;;
+                "brew "*)
+                    suggestion="install"
+                    ;;
+            esac
+        fi
+
+        # 显示建议
+        if [[ -n "$suggestion" ]]; then
+            POSTDISPLAY="$suggestion"
+        else
+            POSTDISPLAY=""
+        fi
+    }
+
+    # 接受建议的函数
+    function _zsh_autosuggest_accept() {
+        if [[ -n "$POSTDISPLAY" ]]; then
+            BUFFER="$BUFFER$POSTDISPLAY"
+            POSTDISPLAY=""
+            zle end-of-line
+        fi
+    }
+
+    # 部分接受建议的函数
+    function _zsh_autosuggest_accept_word() {
+        if [[ -n "$POSTDISPLAY" ]]; then
+            local words=(${=POSTDISPLAY})
+            if [[ ${#words} -gt 0 ]]; then
+                BUFFER="$BUFFER${words[1]}"
+                POSTDISPLAY="${POSTDISPLAY#${words[1]}}"
+                # 如果接受了一个单词后还有空格，也接受空格
+                if [[ "$POSTDISPLAY" =~ "^ " ]]; then
+                    BUFFER="$BUFFER "
+                    POSTDISPLAY="${POSTDISPLAY# }"
+                fi
+            fi
+        fi
+    }
+
+    # 清除建议的函数
+    function _zsh_autosuggest_clear() {
         POSTDISPLAY=""
-    fi
-}
+    }
 
-# 接受建议的函数
-function _zsh_autosuggest_accept() {
-    if [[ -n "$POSTDISPLAY" ]]; then
-        BUFFER="$BUFFER$POSTDISPLAY"
-        POSTDISPLAY=""
-        zle end-of-line
-    fi
-}
+    # 自动触发建议的函数
+    function _zsh_autosuggest_modify() {
+        _zsh_autosuggest_suggest
+    }
 
-# 清除建议的函数
-function _zsh_autosuggest_clear() {
-    POSTDISPLAY=""
-}
+    # 注册ZLE函数
+    zle -N _zsh_autosuggest_accept
+    zle -N _zsh_autosuggest_accept_word
+    zle -N _zsh_autosuggest_clear
+    zle -N _zsh_autosuggest_modify
 
-# 注册ZLE函数
-zle -N _zsh_autosuggest_accept
-zle -N _zsh_autosuggest_clear
+    # 绑定快捷键
+    bindkey "^F" _zsh_autosuggest_accept                        # Ctrl+F 接受完整建议
+    bindkey "^[[C" _zsh_autosuggest_accept                      # 右箭头键接受完整建议
+    bindkey "^[f" _zsh_autosuggest_accept_word                  # Alt+F 接受一个单词
+    bindkey "^G" _zsh_autosuggest_clear                         # Ctrl+G 清除建议
+    bindkey "^C" _zsh_autosuggest_clear                         # Ctrl+C 清除建议
 
-# 绑定快捷键
-bindkey "^F" _zsh_autosuggest_accept                        # Ctrl+F 接受建议
-bindkey "^[[C" _zsh_autosuggest_accept                      # 右箭头键接受建议
-bindkey "^G" _zsh_autosuggest_clear                         # Ctrl+G 清除建议
-bindkey "^C" _zsh_autosuggest_clear                         # Ctrl+C 清除建议
+    # 绑定修改触发器
+    bindkey -M main "^M" accept-line                            # Enter键
 
-# Tab键增强 - 智能补全
-bindkey "^I" expand-or-complete-prefix                      # Tab键智能补全
+    # Tab键增强 - 智能补全
+    bindkey "^I" expand-or-complete-prefix                      # Tab键智能补全
+
+    # 在每次命令修改后触发建议
+    autoload -U add-zsh-hook
+    add-zsh-hook precmd _zsh_autosuggest_suggest
+
+fi  # 结束zsh自动建议功能
 
 # =============================================================================
 # macOS特有功能函数
@@ -540,10 +699,10 @@ function hstats() {
 }
 
 # =============================================================================
-# 自动补全配置
+# bash兼容性配置 (如果不是zsh环境)
 # =============================================================================
-autoload -Uz compinit
-compinit -i
+# 注意：主要的自动补全功能已在上面的zsh专用部分配置
+# 这里只保留基本的bash兼容性设置
 
 # =============================================================================
 # 其他有用的选项
@@ -572,13 +731,22 @@ echo "  ${SUCCESS_COLOR}hdate [日期]${RESET} - 按日期查看历史"
 echo "  ${SUCCESS_COLOR}hstats${RESET} - 历史记录统计信息"
 echo "  ${SUCCESS_COLOR}h, hg, h10, h20${RESET} - 历史记录快捷命令"
 echo
-echo "${INFO_COLOR}🔮 自动补全功能:${RESET}"
-echo "  ${SUCCESS_COLOR}↑/↓ 箭头键${RESET} - 基于输入前缀搜索历史"
-echo "  ${SUCCESS_COLOR}Ctrl+↑/↓${RESET} - 精确历史匹配搜索"
-echo "  ${SUCCESS_COLOR}Option+↑/↓${RESET} - macOS增强历史搜索"
-echo "  ${SUCCESS_COLOR}Ctrl+R${RESET} - 交互式反向搜索"
-echo "  ${SUCCESS_COLOR}Ctrl+F 或 →${RESET} - 接受自动建议"
-echo "  ${SUCCESS_COLOR}Tab${RESET} - 智能命令和路径补全"
+if [[ -n "$ZSH_VERSION" ]]; then
+    echo "${INFO_COLOR}🔮 zsh增强自动补全功能:${RESET}"
+    echo "  ${SUCCESS_COLOR}↑/↓ 箭头键${RESET} - 基于输入前缀搜索历史"
+    echo "  ${SUCCESS_COLOR}Ctrl+↑/↓${RESET} - 精确历史匹配搜索"
+    echo "  ${SUCCESS_COLOR}Option+↑/↓${RESET} - macOS增强历史搜索"
+    echo "  ${SUCCESS_COLOR}Ctrl+R${RESET} - 交互式反向搜索"
+    echo "  ${SUCCESS_COLOR}Ctrl+F 或 →${RESET} - 接受完整自动建议"
+    echo "  ${SUCCESS_COLOR}Alt+F${RESET} - 接受建议中的一个单词"
+    echo "  ${SUCCESS_COLOR}Tab${RESET} - 智能命令和路径补全"
+    echo "  ${SUCCESS_COLOR}智能建议${RESET} - 基于历史和上下文的自动建议"
+else
+    echo "${INFO_COLOR}🔮 基础自动补全功能:${RESET}"
+    echo "  ${SUCCESS_COLOR}↑/↓ 箭头键${RESET} - 历史命令浏览"
+    echo "  ${SUCCESS_COLOR}Ctrl+R${RESET} - 反向搜索历史"
+    echo "  ${SUCCESS_COLOR}Tab${RESET} - 基础补全功能"
+fi
 echo
 echo "${INFO_COLOR}🍎 macOS增强功能:${RESET}"
 echo "  ${SUCCESS_COLOR}f [path]${RESET} - 在Finder中打开目录"
