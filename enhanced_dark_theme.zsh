@@ -321,7 +321,7 @@ function htop() {
 
     history | awk '{print $2}' | sort | uniq -c | sort -nr | head -$num | \
     while read count command; do
-        printf "${SUCCESS_COLOR}%3d${RESET} ${PATH_COLOR}%s${RESET}\n" "$count" "$command"
+        echo "${SUCCESS_COLOR}$(printf '%3d' $count)${RESET} ${PATH_COLOR}$command${RESET}"
     done
 }
 
@@ -344,11 +344,11 @@ function hstats() {
     local today=$(history -E | grep "$(date +%Y-%m-%d)" | wc -l | tr -d ' ')
     local unique=$(history | awk '{print $2}' | sort | uniq | wc -l | tr -d ' ')
 
-    printf "${LABEL_COLOR}总命令数:${RESET} ${SUCCESS_COLOR}%s${RESET}\n" "$total"
-    printf "${LABEL_COLOR}今日命令:${RESET} ${SUCCESS_COLOR}%s${RESET}\n" "$today"
-    printf "${LABEL_COLOR}唯一命令:${RESET} ${SUCCESS_COLOR}%s${RESET}\n" "$unique"
-    printf "${LABEL_COLOR}历史文件:${RESET} ${PATH_COLOR}%s${RESET}\n" "$HISTFILE"
-    printf "${LABEL_COLOR}文件大小:${RESET} ${INFO_COLOR}%s${RESET}\n" "$(du -h $HISTFILE 2>/dev/null | cut -f1 || echo '未知')"
+    echo "${LABEL_COLOR}总命令数:${RESET} ${SUCCESS_COLOR}$total${RESET}"
+    echo "${LABEL_COLOR}今日命令:${RESET} ${SUCCESS_COLOR}$today${RESET}"
+    echo "${LABEL_COLOR}唯一命令:${RESET} ${SUCCESS_COLOR}$unique${RESET}"
+    echo "${LABEL_COLOR}历史文件:${RESET} ${PATH_COLOR}$HISTFILE${RESET}"
+    echo "${LABEL_COLOR}文件大小:${RESET} ${INFO_COLOR}$(du -h $HISTFILE 2>/dev/null | cut -f1 || echo '未知')${RESET}"
 }
 
 # =============================================================================
