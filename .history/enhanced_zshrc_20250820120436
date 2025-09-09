@@ -1,0 +1,147 @@
+# ============================================================================
+# 增强版 Zsh 配置文件
+# 实现实时命令建议、智能补全、上下文感知等功能
+# ============================================================================
+
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# ============================================================================
+# Oh My Zsh 配置
+# ============================================================================
+export ZSH="$HOME/.oh-my-zsh"
+
+# 设置主题
+ZSH_THEME="powerlevel10k/powerlevel10k"
+
+# 插件配置
+plugins=(
+    git                           # Git 集成
+    brew                         # Homebrew 补全
+    macos                        # macOS 特定功能
+    zsh-autosuggestions          # 实时命令建议
+    zsh-syntax-highlighting      # 语法高亮
+    zsh-completions              # 增强补全
+    zsh-history-substring-search # 历史搜索
+    you-should-use              # 别名提醒
+    colored-man-pages           # 彩色 man 页面
+    command-not-found           # 命令未找到建议
+    copypath                    # 复制路径
+    copyfile                    # 复制文件内容
+    dirhistory                  # 目录历史
+    jsontools                   # JSON 工具
+    web-search                  # 网络搜索
+    extract                     # 智能解压
+)
+
+# 加载 Oh My Zsh
+source $ZSH/oh-my-zsh.sh
+
+# ============================================================================
+# 历史配置 - 智能历史记录
+# ============================================================================
+HISTFILE=~/.zsh_history
+HISTSIZE=50000                   # 内存中的历史记录数
+SAVEHIST=50000                   # 文件中的历史记录数
+
+# 历史选项
+setopt EXTENDED_HISTORY          # 记录时间戳
+setopt HIST_EXPIRE_DUPS_FIRST    # 删除重复的旧记录
+setopt HIST_IGNORE_DUPS          # 不记录重复的命令
+setopt HIST_IGNORE_ALL_DUPS      # 删除所有重复
+setopt HIST_FIND_NO_DUPS         # 搜索时不显示重复
+setopt HIST_IGNORE_SPACE         # 忽略以空格开头的命令
+setopt HIST_SAVE_NO_DUPS         # 保存时不记录重复
+setopt HIST_REDUCE_BLANKS        # 删除多余空格
+setopt HIST_VERIFY               # 历史扩展时确认
+setopt INC_APPEND_HISTORY        # 实时追加历史
+setopt SHARE_HISTORY             # 共享历史记录
+
+# ============================================================================
+# 补全系统配置 - 智能参数补全
+# ============================================================================
+autoload -U compinit && compinit
+
+# 补全选项
+setopt COMPLETE_IN_WORD          # 在单词中间也能补全
+setopt ALWAYS_TO_END             # 补全后光标移到末尾
+setopt PATH_DIRS                 # 在路径中搜索补全
+setopt AUTO_MENU                 # 自动菜单
+setopt AUTO_LIST                 # 自动列出选择
+setopt AUTO_PARAM_SLASH          # 目录后自动添加斜杠
+setopt FLOW_CONTROL              # 启用流控制
+
+# 补全样式
+zstyle ':completion:*' menu select
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' verbose yes
+zstyle ':completion:*:descriptions' format '%B%d%b'
+zstyle ':completion:*:messages' format '%d'
+zstyle ':completion:*:warnings' format 'No matches for: %d'
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+
+# 智能大小写匹配
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+
+# 进程补全
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
+zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm -w -w"
+
+# ============================================================================
+# 环境变量和路径
+# ============================================================================
+# 编辑器
+export EDITOR='code'
+export VISUAL='code'
+
+# 语言环境
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
+# 路径配置
+export PATH="/opt/homebrew/bin:$PATH"
+export PATH="/usr/local/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
+
+# FZF 配置
+export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border --inline-info"
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+
+# ============================================================================
+# 工具集成
+# ============================================================================
+# Zoxide (智能 cd)
+if command -v zoxide &> /dev/null; then
+    eval "$(zoxide init zsh)"
+fi
+
+# FZF 集成
+if command -v fzf &> /dev/null; then
+    source <(fzf --zsh)
+fi
+
+# TheFuck 集成
+if command -v thefuck &> /dev/null; then
+    eval $(thefuck --alias)
+fi
+
+# ============================================================================
+# 插件特定配置
+# ============================================================================
+# zsh-autosuggestions 配置
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#666666,underline"
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
+
+# zsh-history-substring-search 配置
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+bindkey '^P' history-substring-search-up
+bindkey '^N' history-substring-search-down
+
+# you-should-use 配置
+export YSU_MESSAGE_POSITION="after"
+export YSU_HARDCORE=1
