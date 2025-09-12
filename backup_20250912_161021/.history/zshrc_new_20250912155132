@@ -1,0 +1,35 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# 基础配置
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
+# History 配置
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+setopt appendhistory
+setopt SHARE_HISTORY
+setopt HIST_IGNORE_DUPS
+
+# 加载命令补全配置
+[[ -f ~/.zsh/completion_config.zsh ]] && source ~/.zsh/completion_config.zsh
+
+# 加载命令联想配置
+[[ -f ~/.zsh/suggestion_config.zsh ]] && source ~/.zsh/suggestion_config.zsh
+
+# 基本别名
+alias ls='ls --color=auto'
+alias ll='ls -l'
+alias la='ls -la'
+
+# 如果存在 p10k 配置文件则加载
+[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
+
+# 使用简单的提示符（如果 p10k 未配置）
+if [[ ! -f ~/.p10k.zsh ]]; then
+    PROMPT='%F{green}%n@%m%f:%F{blue}%~%f$ '
+fi

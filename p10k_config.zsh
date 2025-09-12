@@ -1,7 +1,11 @@
 # Powerlevel10k 配置文件
-# 提供美观的终端提示符和丰富的视觉效果
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
 
-# Temporarily change options.
+# 基础设置
 'builtin' 'local' '-a' 'p10k_config_opts'
 [[ ! -o 'aliases'         ]] || p10k_config_opts+=('aliases')
 [[ ! -o 'sh_glob'         ]] || p10k_config_opts+=('sh_glob')
@@ -18,14 +22,14 @@
   # Zsh >= 5.1 is required.
   [[ $ZSH_VERSION == (5.<1->*|<6->.*) ]] || return
 
-  # The list of segments shown on the left. Fill it with the most important segments.
+  # 提示符元素配置
   typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
-    # ========================= 左侧提示符元素 =========================
-    os_icon                 # 操作系统图标
-    dir                     # 当前目录
-    vcs                     # Git 状态信息
-    python_version          # Python 版本
-    prompt_char             # 命令行提示符
+    os_icon                # 操作系统图标
+    dir                    # 当前目录
+    vcs                    # Git 状态
+    pyenv                  # Python 版本
+    anaconda              # Conda 环境
+    prompt_char           # 提示符
   )
 
   # The list of segments shown on the right. Fill it with less important segments.
@@ -41,10 +45,10 @@
   )
 
   # Defines character set used by powerlevel10k. It's best to let `p10k configure` set it for you.
-  # typeset -g POWERLEVEL9K_MODE=nerdfont-complete
-  typeset -g POWERLEVEL9K_MODE=compatible      # ASCII
+  typeset -g POWERLEVEL9K_MODE=nerdfont-complete
+  # typeset -g POWERLEVEL9K_MODE=compatible      # ASCII
   # typeset -g POWERLEVEL9K_MODE=powerline       # Linux console
-  # typeset -g POWERLEVEL9K_MODE=nerdfont-complete  # Requires Nerd Font
+  # 使用 Nerd Font 以获得更好的图标支持
 
   # When set to `moderate`, some icons will have an extra space after them. This is meant to avoid
   # icon overlap when using non-monospace fonts. When set to `none`, spaces are not added.
@@ -202,14 +206,18 @@
   # and POWERLEVEL9K_DIR_CLASSES below.
   typeset -g POWERLEVEL9K_DIR_SHOW_WRITABLE=v3
 
-  ##################################[ python_version: python version ]##################################
-  # Python version color.
-  typeset -g POWERLEVEL9K_PYTHON_VERSION_FOREGROUND=37
-  typeset -g POWERLEVEL9K_PYTHON_VERSION_BACKGROUND=4
-  # Show Python version always (not just in Python projects)
-  typeset -g POWERLEVEL9K_PYTHON_VERSION_PROJECT_ONLY=false
-  # Custom Python version format.
-  typeset -g POWERLEVEL9K_PYTHON_VERSION_CONTENT_EXPANSION='🐍${P9K_CONTENT}'
+  # Python 和 Conda 环境设置
+  typeset -g POWERLEVEL9K_ANACONDA_FOREGROUND=15
+  typeset -g POWERLEVEL9K_ANACONDA_BACKGROUND=4
+  typeset -g POWERLEVEL9K_ANACONDA_CONTENT_EXPANSION='conda:$P9K_CONTENT'
+  typeset -g POWERLEVEL9K_ANACONDA_SHOW_PYTHON_VERSION=false
+  typeset -g POWERLEVEL9K_ANACONDA_PREFIX=''
+  typeset -g POWERLEVEL9K_ANACONDA_SUFFIX=''
+
+  typeset -g POWERLEVEL9K_PYENV_FOREGROUND=0
+  typeset -g POWERLEVEL9K_PYENV_BACKGROUND=6
+  typeset -g POWERLEVEL9K_PYENV_CONTENT_EXPANSION='py:$P9K_CONTENT'
+  typeset -g POWERLEVEL9K_PYENV_PROMPT_ALWAYS_SHOW=true
 
   ##################################[ virtualenv: python virtual environment ]##################################
   # Python virtual environment color.
@@ -290,30 +298,35 @@
   typeset -g POWERLEVEL9K_PYTHON_VERSION_BACKGROUND=11       # 亮黄色背景
 
   # 虚拟环境颜色优化
-  typeset -g POWERLEVEL9K_VIRTUALENV_FOREGROUND=0            # 黑色文字
-  typeset -g POWERLEVEL9K_VIRTUALENV_BACKGROUND=2            # 绿色背景
+  typeset -g POWERLEVEL9K_VIRTUALENV_FOREGROUND=15           # 亮白色文字
+  typeset -g POWERLEVEL9K_VIRTUALENV_BACKGROUND=4            # 蓝色背景
 
   # Conda 环境颜色优化
-  typeset -g POWERLEVEL9K_ANACONDA_FOREGROUND=0              # 黑色文字
-  typeset -g POWERLEVEL9K_ANACONDA_BACKGROUND=6              # 青色背景
+  typeset -g POWERLEVEL9K_ANACONDA_FOREGROUND=15            # 亮白色文字
+  typeset -g POWERLEVEL9K_ANACONDA_BACKGROUND=4             # 蓝色背景
 
-  # 自定义 Python 版本格式 - 使用常用字符
-  typeset -g POWERLEVEL9K_PYTHON_VERSION_CONTENT_EXPANSION='py${P9K_CONTENT}'
-  typeset -g POWERLEVEL9K_VIRTUALENV_CONTENT_EXPANSION='(${P9K_CONTENT})'
-  typeset -g POWERLEVEL9K_ANACONDA_CONTENT_EXPANSION='conda:${P9K_CONTENT}'
+  # 自定义 Python 版本格式
+  typeset -g POWERLEVEL9K_PYTHON_VERSION_CONTENT_EXPANSION='%F{0}py:%f$P9K_CONTENT'
+  # 虚拟环境显示格式
+  typeset -g POWERLEVEL9K_VIRTUALENV_CONTENT_EXPANSION='%F{15}venv:%f$P9K_CONTENT'
+  # Conda 环境显示格式
+  typeset -g POWERLEVEL9K_ANACONDA_CONTENT_EXPANSION='%F{15}🐍%f $P9K_CONTENT'
+  
+  # 始终显示 Python 版本和环境信息
+  typeset -g POWERLEVEL9K_PYTHON_VERSION_PROJECT_ONLY=false
+  typeset -g POWERLEVEL9K_ANACONDA_SHOW_PYTHON_VERSION=true
+  typeset -g POWERLEVEL9K_VIRTUALENV_SHOW_PYTHON_VERSION=true
 
   # Instant prompt mode.
-  #   - off:     Disable instant prompt. Choose this if you've tried instant prompt and found
-  #              it incompatible with your zsh configuration files.
-  #   - quiet:   Enable instant prompt and don't print warnings when detecting console output
-  #              during zsh initialization. Choose this if you've read and understood
-  #              https://github.com/romkatv/powerlevel10k/blob/master/README.md#instant-prompt.
-  #   - verbose: Enable instant prompt and print a warning when detecting console output during
-  #              zsh initialization. Choose this if you've never tried instant prompt, live
-  #              dangerously, and do like shell startup speed.
-  typeset -g POWERLEVEL9K_INSTANT_PROMPT=verbose
-
-  # Hot reload gives you a live preview of changes in ~/.p10k.zsh. You can edit the file,
+#   - off:     Disable instant prompt. Choose this if you've tried instant prompt and found
+#              it incompatible with your zsh configuration files.
+#   - quiet:   Enable instant prompt and don't print warnings when detecting console output
+#              during zsh initialization. Choose this if you've read and understood
+#              https://github.com/romkatv/powerlevel10k/blob/master/README.md#instant-prompt.
+#   - verbose: Enable instant prompt and print a warning when detecting console output during
+#              zsh initialization. Choose this if you've never tried instant prompt, live
+#              dangerously, and do like shell startup speed.
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet  # Hot reload gives you a live preview of changes in ~/.p10k.zsh. You can edit the file,
   # save it, and see changes reflected in your terminal without restarting zsh.
   #
   # This feature is disabled by default because it makes prompt slower by 1-2 milliseconds.

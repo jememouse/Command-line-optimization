@@ -1,0 +1,73 @@
+# p10k 纯 ASCII 配置文件
+
+# Enable Powerlevel10k instant prompt
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# 基础设置 - 使用 ASCII 模式
+typeset -g POWERLEVEL9K_MODE=ascii
+typeset -g POWERLEVEL9K_ICON_PADDING=none
+
+# 提示符元素配置
+typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
+    dir                     # 当前目录
+    vcs                    # Git 状态
+    virtualenv             # Python 虚拟环境
+    prompt_char           # 提示符
+)
+
+typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
+    time                  # 时间显示
+)
+
+# 目录显示设置
+typeset -g POWERLEVEL9K_DIR_FOREGROUND=12
+typeset -g POWERLEVEL9K_SHORTEN_STRATEGY=truncate_to_unique
+typeset -g POWERLEVEL9K_SHORTEN_DELIMITER=".."
+
+# Git 状态显示 - 使用 ASCII 字符
+typeset -g POWERLEVEL9K_VCS_CLEAN_FOREGROUND=2
+typeset -g POWERLEVEL9K_VCS_MODIFIED_FOREGROUND=3
+typeset -g POWERLEVEL9K_VCS_UNTRACKED_FOREGROUND=3
+typeset -g POWERLEVEL9K_VCS_CLEAN_CONTENT_EXPANSION='[clean]'
+typeset -g POWERLEVEL9K_VCS_MODIFIED_CONTENT_EXPANSION='[modified]'
+typeset -g POWERLEVEL9K_VCS_UNTRACKED_CONTENT_EXPANSION='[untracked]'
+
+# 提示符字符 - 使用简单的 ASCII 字符
+typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_VIINS_CONTENT_EXPANSION='>'
+typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_VIINS_CONTENT_EXPANSION='>'
+typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_VIINS_FOREGROUND=2
+typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_VIINS_FOREGROUND=1
+
+# Python 虚拟环境显示
+typeset -g POWERLEVEL9K_VIRTUALENV_FOREGROUND=4
+typeset -g POWERLEVEL9K_VIRTUALENV_CONTENT_EXPANSION='(py:%f%B${P9K_CONTENT}%b)'
+
+# 时间显示格式
+typeset -g POWERLEVEL9K_TIME_FOREGROUND=8
+typeset -g POWERLEVEL9K_TIME_FORMAT='%D{%H:%M:%S}'
+
+# 分隔符设置 - 使用基本 ASCII 字符
+typeset -g POWERLEVEL9K_LEFT_SEGMENT_SEPARATOR='|'
+typeset -g POWERLEVEL9K_RIGHT_SEGMENT_SEPARATOR='|'
+typeset -g POWERLEVEL9K_LEFT_SUBSEGMENT_SEPARATOR=' '
+typeset -g POWERLEVEL9K_RIGHT_SUBSEGMENT_SEPARATOR=' '
+
+# 多行提示符设置
+typeset -g POWERLEVEL9K_PROMPT_ADD_NEWLINE=true
+typeset -g POWERLEVEL9K_MULTILINE_FIRST_PROMPT_PREFIX=""
+typeset -g POWERLEVEL9K_MULTILINE_NEWLINE_PROMPT_PREFIX=""
+typeset -g POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX=""
+typeset -g POWERLEVEL9K_MULTILINE_FIRST_PROMPT_SUFFIX=""
+typeset -g POWERLEVEL9K_MULTILINE_NEWLINE_PROMPT_SUFFIX=""
+typeset -g POWERLEVEL9K_MULTILINE_LAST_PROMPT_SUFFIX=""
+
+# 禁用特殊字符图标
+typeset -g POWERLEVEL9K_DISABLE_HOT_RELOAD=true
+typeset -g POWERLEVEL9K_DISABLE_GITSTATUS=true
+
+# 状态显示 - 使用 ASCII 字符
+typeset -g POWERLEVEL9K_STATUS_OK=false
+typeset -g POWERLEVEL9K_STATUS_ERROR_CONTENT_EXPANSION='[error]'
+typeset -g POWERLEVEL9K_STATUS_ERROR_FOREGROUND=1
