@@ -23,14 +23,14 @@ fi
   [[ $ZSH_VERSION == (5.<1->*|<6->.*) ]] || return
 
   # 提示符元素配置
-  typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
-    os_icon                # 操作系统图标
-    dir                    # 当前目录
-    vcs                    # Git 状态
-    virtualenv            # Python 虚拟环境
-    pyenv                  # Python 版本
-    anaconda              # Conda 环境
-    prompt_char           # 提示符
+ typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
+  os_icon                # 操作系统图标
+  dir                    # 当前目录
+  vcs                    # Git 状态 (分支信息)
+  virtualenv            # Python 虚拟环境
+  pyenv                  # Python 版本
+  anaconda              # Conda 环境
+  prompt_char           # 提示符
   )
 
   # The list of segments shown on the right. Fill it with less important segments.
@@ -46,7 +46,7 @@ fi
   )
 
   # Defines character set used by powerlevel10k. It's best to let `p10k configure` set it for you.
-  typeset -g POWERLEVEL9K_MODE=nerdfont-complete
+  typeset -g POWERLEVEL9K_MODE=compatible
   # typeset -g POWERLEVEL9K_MODE=compatible      # ASCII
   # typeset -g POWERLEVEL9K_MODE=powerline       # Linux console
   # 使用 Nerd Font 以获得更好的图标支持
