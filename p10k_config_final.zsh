@@ -1,4 +1,4 @@
-# p10k 配置文件 - 纯 ASCII 版本
+# p10k 配置文件
 
 # Enable Powerlevel10k instant prompt
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
@@ -15,22 +15,19 @@ typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
     python                 # Python 版本
     dir                    # 当前目录
     vcs                    # Git 状态
+    virtualenv             # Python 虚拟环境
+    node_version           # Node.js 版本
+    command_execution_time # 命令执行时间
     prompt_char            # 提示符
 )
 
 typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
     status                 # 命令状态
-    time                  # 时间显示
+    time                   # 时间显示
 )
 
-# Conda 环境显示
-typeset -g POWERLEVEL9K_CONDA_FOREGROUND=37
-
-# Python 版本显示
-typeset -g POWERLEVEL9K_PYTHON_VERSION_FOREGROUND=70
-
-# 目录设置
-typeset -g POWERLEVEL9K_DIR_FOREGROUND=196
+# 目录设置 (恢复蓝色)
+typeset -g POWERLEVEL9K_DIR_FOREGROUND=31
 typeset -g POWERLEVEL9K_DIR_SHORTENED_FOREGROUND=103
 typeset -g POWERLEVEL9K_DIR_ANCHOR_FOREGROUND=39
 
@@ -39,14 +36,28 @@ typeset -g POWERLEVEL9K_VCS_CLEAN_FOREGROUND=76
 typeset -g POWERLEVEL9K_VCS_MODIFIED_FOREGROUND=178
 typeset -g POWERLEVEL9K_VCS_UNTRACKED_FOREGROUND=39
 
-# 提示符样式 - 使用 ASCII 字符
-typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_VIINS_CONTENT_EXPANSION='>'
-typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_VIINS_CONTENT_EXPANSION='>'
+# 提示符样式 (使用 Nerd Font 图标)
+typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_VIINS_CONTENT_EXPANSION='❯'
+typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_VIINS_CONTENT_EXPANSION='❯'
 typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_VIINS_FOREGROUND=76
 typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_VIINS_FOREGROUND=196
 
 # 时间显示格式
-typeset -g POWERLEVEL9K_TIME_FORMAT='%D{%H:%M:%S}
+typeset -g POWERLEVEL9K_TIME_FORMAT='%D{%H:%M:%S}'
+
+# Conda 环境显示
+typeset -g POWERLEVEL9K_CONDA_FOREGROUND=37
+
+# Python 版本显示
+typeset -g POWERLEVEL9K_PYTHON_VERSION_FOREGROUND=70
+
+# 虚拟环境显示
+typeset -g POWERLEVEL9K_VIRTUALENV_FOREGROUND=37
+typeset -g POWERLEVEL9K_VIRTUALENV_SHOW_PYTHON_VERSION=true
+
+# Node.js 版本显示
+typeset -g POWERLEVEL9K_NODE_VERSION_FOREGROUND=70
+typeset -g POWERLEVEL9K_NODE_VERSION_PROJECT_ONLY=true
 
 # 命令执行时间
 typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_THRESHOLD=3
