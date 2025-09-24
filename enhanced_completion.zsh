@@ -1,6 +1,34 @@
 # =============================================================================
 #                           高级命令补全和环境管理配置
 # =============================================================================
+#
+# 配置说明：
+# 1. 将以下行添加到您的 ~/.zshrc 文件中以加载此配置：
+#    source ~/.zsh/enhanced_completion.zsh
+#
+# 2. 安装前提条件：
+#    - zsh-autosuggestions: git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
+#    - zsh-syntax-highlighting: git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.zsh/zsh-syntax-highlighting
+#    - nvm (Node.js 版本管理): curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+#    - 启用 nvm：在 ~/.zshrc 中添加 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+#
+# 3. Powerlevel10k 提示符配置（可选）：
+#    运行 `p10k configure` 命令来启动 Powerlevel10k 的配置向导并自定义你的终端提示符。
+#
+# 可用命令：
+# - venv_create/activate/remove/list : Python 虚拟环境管理
+# - node_install/use/remove : Node.js 版本管理
+# - switch_env <类型> <环境名> : 快速切换环境 (类型: python 或 node)
+# - show_current_env : 显示当前环境信息
+
+# 加载 zsh-autosuggestions (命令联想) 和 zsh-syntax-highlighting (语法高亮)
+if [[ -d ~/.zsh/zsh-autosuggestions ]]; then
+    source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
+
+if [[ -d ~/.zsh/zsh-syntax-highlighting ]]; then
+    source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
 
 # -----------------------------------------------------------------------------
 #                           1. 命令参数补全增强
@@ -325,10 +353,8 @@ function env_info_prompt() {
 # 集成到提示符
 PROMPT='$(env_info_prompt)'$PROMPT
 
-# 加载完成提示
-echo "✨ 高级命令补全和环境管理功能已加载"
-echo "📚 可用命令:"
-echo "   - venv_create/activate/remove/list : Python 虚拟环境管理"
-echo "   - node_install/use/remove : Node.js 版本管理"
-echo "   - switch_env : 快速切换环境"
-echo "   - show_current_env : 显示当前环境信息"
+# Powerlevel10k 配置提示（每次加载时显示，仅输出一次）
+if [[ -z "$P10K_CONFIG_SHOWN" ]]; then
+    echo "运行 \`p10k configure\` 命令来启动 Powerlevel10k 的配置向导并自定义你的终端提示符。"
+    export P10K_CONFIG_SHOWN=1
+fi
