@@ -34,21 +34,6 @@ alias ls='ls --color=auto'
 alias ll='ls -l'
 alias la='ls -la'
 
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/Users/wang/miniforge3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/Users/wang/miniforge3/etc/profile.d/conda.sh" ]; then
-        . "/Users/wang/miniforge3/etc/profile.d/conda.sh"
-    else
-        export PATH="/Users/wang/miniforge3/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
-
 # 加载增强补全配置
 [[ -f ~/.zsh/enhanced_completion.zsh ]] && source ~/.zsh/enhanced_completion.zsh
 
@@ -57,3 +42,20 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 source ~/.zsh/enhanced_completion.zsh
+export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles
+export HOMEBREW_API_DOMAIN=https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api
+export HOMEBREW_BREW_GIT_REMOTE=https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git
+export HOMEBREW_CORE_GIT_REMOTE=https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/homebrew-core.git
+export HOMEBREW_CASK_GIT_REMOTE=https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/homebrew-cask.git
+# bun
+export BUN_INSTALL="$HOME/Library/Application Support/reflex/bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Added by Antigravity
+export PATH="/Users/wang/.antigravity/antigravity/bin:$PATH"
+
+export PATH="/Users/wang/.pixi/bin:$PATH"
+export UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+export UV_PYTHON_INSTALL_MIRROR="https://mirrors.tuna.tsinghua.edu.cn/python"
+
+. "$HOME/.local/bin/env"
